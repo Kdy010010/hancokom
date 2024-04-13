@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한코컴</title>
+    <style>
+        /* CSS 코드 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header img {
+            width: 100px;
+            height: 100px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 28px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"],
+        textarea,
+        input[type="file"],
+        button {
+            width: calc(100% - 22px);
+            margin-bottom: 20px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+        }
+
+        input[type="text"],
+        textarea,
+        input[type="file"] {
+            background-color: #f9f9f9;
+        }
+
+        input[type="file"] {
+            padding-top: 17px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 추가된 스타일 */
+        .issue {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment {
+            margin-left: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        input[type="search"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .search-results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="logo.jpg" alt="한코컴 로고">
+        <h1>한코컴</h1>
+    </header>
+    <main>
+        <form id="issueForm">
+            <input type="text" id="apiKey" placeholder="Github API 키" required>
+            <input type="text" id="title" placeholder="제목" required>
+            <textarea id="content" placeholder="내용" required></textarea>
+            <input type="file" id="file" accept=".jpg, .jpeg, .png, .gif">
+            <button type="submit">이슈 생성</button>
+        </form>
+        <div id="searchContainer" class="search-container">
+            <input type="search" id="searchInput" placeholder="검색">
+        </div>
+        <div id="issueList" class="search-results"></div>
+    </main>
+    <script>
+        // JavaScript 코드
+        document.getElementById("issueForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            var apiKey = document.getElementById("apiKey").value;
+            var title = document.getElementById("title").value;
+            var content = document.getElementById("content").value;
+            var file = document.getElementById("file").files[0];
+            
+            var formData = new FormData();
+            formData.append("title", title);
+            formData.append("body", content);
+            formData.append("file", file);
+            
+            fetch("https://api.github.com/repos/kdy010010/hancokom/issues", {
+                method: "POST",
+                headers: {
+                    "Authorization": "token " + apiKey
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("이슈가 성공적으로 생성되었습니다.");
+                console.log(data);
+            })
+            .catch(error => {
+                alert("이슈 생성에 실패했습니다.");
+                console.error(error);
+            });
+        });
+
+        document.getElementById("searchInput").addEventListener("input", function() {
+            var query = this.value;
+            if (query === "") {
+                document.getElementById("issueList").innerHTML = "";
+                return;
+            }
+            
+            fetch("https://api.github.com/repos/kdy010010/hancokom/issues?q=" + query)
+            .then(response => response.json())
+            .then(data => {
+                var issueList = document.getElementById("issueList");
+                issueList.innerHTML = "";
+                data.forEach(issue => {
+                    var issueDiv = document.createElement("div");
+                    issueDiv.classList.add("issue");
+                    issueDiv.innerHTML = "<h3>" + issue.title + "</h3><p>" + issue.body + "</p>";
+                    if (issue.comments > 0) {
+                        var commentsLink = document.createElement("a");
+                        commentsLink.href = issue.comments_url;
+                        commentsLink.innerText = "댓글 보기";
+                        issueDiv.appendChild(commentsLink);
+                    }
+                    issueList.appendChild(issueDiv);
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        });
+    </script>
+</body>
+</html>
