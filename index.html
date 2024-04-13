@@ -147,18 +147,22 @@
             var title = document.getElementById("title").value;
             var content = document.getElementById("content").value;
             var file = document.getElementById("file").files[0];
-            
+
             var formData = new FormData();
             formData.append("title", title);
             formData.append("body", content);
-            formData.append("file", file);
-            
+
+            // 파일 업로드 부분 제거
+
             fetch("https://api.github.com/repos/kdy010010/hancokom/issues", {
                 method: "POST",
                 headers: {
                     "Authorization": "token " + apiKey
                 },
-                body: formData
+                body: JSON.stringify({
+                    title: title,
+                    body: content + "\n\n업로드된 파일: " + fileURL // 파일 URL을 본문에 추가
+                })
             })
             .then(response => response.json())
             .then(data => {
